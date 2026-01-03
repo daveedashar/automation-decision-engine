@@ -1,0 +1,56 @@
+# Lead Routing Rules
+# Example rule set for routing leads based on score and attributes
+
+name: lead_routing
+version: "1.0"
+description: Route incoming leads to appropriate teams
+
+rules:
+  - name: high_value_enterprise
+    description: Route high-scoring enterprise leads to enterprise team
+    conditions:
+      - field: lead_score
+        operator: gte
+        value: 80
+      - field: company_size
+        operator: eq
+        value: "enterprise"
+    match_type: all
+    actions:
+      - type: assign
+        config:
+          to: "enterprise_team"
+      - type: notify
+        config:
+          channel: "slack"
+          message: "🔥 High-value enterprise lead: {{lead.company}}"
+    priority: 100
+
+  - name: mid_market_qualified
+    description: Route qualified mid-market leads to sales team
+    conditions:
+      - field: lead_score
+        operator: gte
+        value: 50
+      - field: company_size
+        operator: in
+        value: ["mid_market", "smb"]
+    match_type: all
+    actions:
+      - type: assign
+        config:
+          to: "sales_team"
+      - type: notify
+        config:
+          channel: "email"
+    priority: 50
+
+  - name: default_routing
+    description: Route all other leads to SDR team
+    conditions: []
+    match_type: all
+    actions:
+      - type: assign
+        config:
+          to: "sdr_team"
+    priority: 0
